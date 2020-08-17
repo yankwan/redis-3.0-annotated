@@ -77,6 +77,7 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
     aeApiState *state = eventLoop->apidata;
     int retval, j, numevents = 0;
 
+    // 拷贝到_开头的变量中
     memcpy(&state->_rfds,&state->rfds,sizeof(fd_set));
     memcpy(&state->_wfds,&state->wfds,sizeof(fd_set));
 
@@ -92,7 +93,7 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
                 mask |= AE_READABLE;
             if (fe->mask & AE_WRITABLE && FD_ISSET(j,&state->_wfds))
                 mask |= AE_WRITABLE;
-            eventLoop->fired[numevents].fd = j;
+            eventLoop->fired[numevents].fd = j;   // 赋值已就绪的描述符
             eventLoop->fired[numevents].mask = mask;
             numevents++;
         }

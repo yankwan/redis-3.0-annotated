@@ -244,8 +244,9 @@ int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
 static void aeGetTime(long *seconds, long *milliseconds)
 {
     struct timeval tv;
-
+    // 获取当前时间 保存到tv里
     gettimeofday(&tv, NULL);
+    // 从tv拿出秒和毫秒
     *seconds = tv.tv_sec;
     *milliseconds = tv.tv_usec/1000;
 }
@@ -510,10 +511,13 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         ((flags & AE_TIME_EVENTS) && !(flags & AE_DONT_WAIT))) {
         int j;
         aeTimeEvent *shortest = NULL;
+
+        // 1
         struct timeval tv, *tvp;
 
         // 获取最近的时间事件
         if (flags & AE_TIME_EVENTS && !(flags & AE_DONT_WAIT))
+            // 2
             shortest = aeSearchNearestTimer(eventLoop);
         if (shortest) {
             // 如果时间事件存在的话
@@ -524,8 +528,11 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
              * timer to fire. */
             // 计算距今最近的时间事件还要多久才能达到
             // 并将该时间距保存在 tv 结构中
+            // 3
             aeGetTime(&now_sec, &now_ms);
             tvp = &tv;
+
+            // 4 最近的时间事件事件减当前时间获得时间差
             tvp->tv_sec = shortest->when_sec - now_sec;
             if (shortest->when_ms < now_ms) {
                 tvp->tv_usec = ((shortest->when_ms+1000) - now_ms)*1000;
@@ -534,6 +541,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
                 tvp->tv_usec = (shortest->when_ms - now_ms)*1000;
             }
 
+            // 5
             // 时间差小于 0 ，说明事件已经可以执行了，将秒和毫秒设为 0 （不阻塞）
             if (tvp->tv_sec < 0) tvp->tv_sec = 0;
             if (tvp->tv_usec < 0) tvp->tv_usec = 0;
@@ -547,11 +555,13 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
              * to zero */
             if (flags & AE_DONT_WAIT) {
                 // 设置文件事件不阻塞
+                // 6
                 tv.tv_sec = tv.tv_usec = 0;
                 tvp = &tv;
             } else {
                 /* Otherwise we can block */
                 // 文件事件可以阻塞直到有事件到达为止
+                // 7
                 tvp = NULL; /* wait forever */
             }
         }

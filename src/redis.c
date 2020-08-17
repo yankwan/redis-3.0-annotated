@@ -2537,6 +2537,10 @@ int processCommand(redisClient *c) {
      * go through checking for replication and QUIT will cause trouble
      * when FORCE_REPLICATION is enabled and would be implemented in
      * a regular command proc. */
+
+    void *commandName = c->argv[0]->ptr;
+    redisLog(REDIS_NOTICE, "The server is now processing %s", commandName);
+
     // 特别处理 quit 命令
     if (!strcasecmp(c->argv[0]->ptr,"quit")) {
         addReply(c,shared.ok);
